@@ -1,18 +1,18 @@
 import { SlashCommandBuilder } from 'discord.js'
 import { Command } from './command.js'
-import { Guild } from '../db/models/guild.js'
 import { Bank } from '../db/models/bank.js'
+import { Guild } from '../db/models/guild.js'
 
-export class CurrencyCommand extends Command {
+export class BankManagerCommand extends Command {
   constructor() {
     super()
-    this.currencyOption = 'currency'
+    this.roleOption = 'role'
 
     this.data = new SlashCommandBuilder()
-      .setName('currency')
-      .setDescription('Sets the currency')
-      .addStringOption((option) => {
-        return option.setName(this.currencyOption).setDescription('The currency to set').setRequired(true)
+      .setName('bank-manager')
+      .setDescription('Sets the role that can manage the bank')
+      .addRoleOption((option) => {
+        return option.setName(this.roleOption).setDescription('The role that has access to the bank').setRequired(true)
       })
   }
 
@@ -20,12 +20,12 @@ export class CurrencyCommand extends Command {
    * @param {import('discord.js').Interaction} interaction
    */
   async execute(interaction) {
-    const currency = interaction.options.getString(this.currencyOption)
+    const role = interaction.options.getRole(this.roleOption)
 
     const guildId = await this.getGuildID(interaction.guildId)
-    await this.updateCurrencyName(currency, guildId.id)
+    await this.updateRole(role.id, guildId.id)
 
-    interaction.reply(`Currency set to ${currency}`)
+    interaction.reply(`Bank enabled for role ${role}`)
   }
 
   getGuildID(guildId) {
@@ -37,10 +37,10 @@ export class CurrencyCommand extends Command {
     })
   }
 
-  updateCurrencyName(currencyName, guildId) {
+  updateRole(roleId, guildId) {
     return Bank.update(
       {
-        currencyName: currencyName
+        bankManagerRoleId: roleId
       },
       {
         where: {

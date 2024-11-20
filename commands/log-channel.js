@@ -1,5 +1,6 @@
 import { SlashCommandBuilder } from 'discord.js'
 import { Command } from './command.js'
+import { Guild } from '../db/models/guild.js'
 
 export class LogChannelCommand extends Command {
   constructor() {
@@ -30,16 +31,45 @@ export class LogChannelCommand extends Command {
   /**
    * @param {import('discord.js').Interaction} interaction
    */
-  execute(interaction) {
+  async execute(interaction) {
     if (interaction.options.getSubcommand() === this.enableCommand) {
       const channel = interaction.options.getChannel(this.channelOption)
-      // Todo: Add the channel to the DB
+
+      await this.updateChannel(channel.id, interaction.guildId)
+
       interaction.reply(`Logging enabled in channel ${channel}`)
     } else if (interaction.options.getSubcommand() === this.disableCommand) {
-      // Todo: Remove the channel from the DB
+      await this.deleteChannel(interaction.guildId)
+
       interaction.reply(`Logging disabled`)
     } else {
       interaction.reply('Invalid subcommand')
     }
+  }
+
+  updateChannel(channelId, guildId) {
+    return Guild.update(
+      {
+        logChannelId: channelId
+      },
+      {
+        where: {
+          discordId: guildId
+        }
+      }
+    )
+  }
+
+  deleteChannel(guildId) {
+    return Guild.update(
+      {
+        logChannelId: null
+      },
+      {
+        where: {
+          discordId: guildId
+        }
+      }
+    )
   }
 }

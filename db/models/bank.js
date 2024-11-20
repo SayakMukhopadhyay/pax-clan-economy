@@ -17,6 +17,9 @@ export function BankInit(sequelize) {
       currencyValue: {
         type: DataTypes.DECIMAL(10, 2),
         defaultValue: 0.0
+      },
+      bankManagerRoleId: {
+        type: DataTypes.STRING
       }
     },
     { sequelize, modelName: 'Bank' }

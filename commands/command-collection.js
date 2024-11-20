@@ -7,6 +7,8 @@ import { RemoveCurrencyCommand } from './remove-currency.js'
 import { AddCurrencyBankCommand } from './add-currency-bank.js'
 import { RemoveCurrencyBankCommand } from './remove-currency-bank.js'
 import { GiveCurrencyCommand } from './give-currency.js'
+import { SetupCommand } from './setup.js'
+import { BankManagerCommand } from './bank-manager.js'
 
 export class CommandCollection {
   constructor() {
@@ -16,6 +18,8 @@ export class CommandCollection {
 
   createCommandCollection() {
     this.ping = new PingCommand()
+    this.setup = new SetupCommand()
+    this.bankManager = new BankManagerCommand()
     this.currency = new CurrencyCommand()
     this.logChannel = new LogChannelCommand()
     this.addCurrency = new AddCurrencyCommand()
@@ -25,6 +29,8 @@ export class CommandCollection {
     this.giveCurrency = new GiveCurrencyCommand()
 
     this.commands.set(this.ping.data.name, this.ping)
+    this.commands.set(this.setup.data.name, this.setup)
+    this.commands.set(this.bankManager.data.name, this.bankManager)
     this.commands.set(this.currency.data.name, this.currency)
     this.commands.set(this.logChannel.data.name, this.logChannel)
     this.commands.set(this.addCurrency.data.name, this.addCurrency)

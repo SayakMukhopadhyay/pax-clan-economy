@@ -28,11 +28,11 @@ export class DB {
     UserInit(this.sequelize)
     UserBankInit(this.sequelize)
 
-    Guild.hasOne(Bank, { foreignKey: { allowNull: false }, onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+    Guild.hasOne(Bank, { foreignKey: { name: 'guildId', allowNull: false }, onDelete: 'CASCADE', onUpdate: 'CASCADE' })
     Bank.belongsTo(Guild)
 
-    User.belongsToMany(Bank, { through: UserBank })
-    Bank.belongsToMany(User, { through: UserBank })
+    User.belongsToMany(Bank, { through: UserBank, foreignKey: 'bankId' })
+    Bank.belongsToMany(User, { through: UserBank, foreignKey: 'userId' })
   }
 
   async sync() {

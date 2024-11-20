@@ -5,14 +5,11 @@ export class UserBank extends Model {}
 export function UserBankInit(sequelize) {
   UserBank.init(
     {
-      UserId: {
+      userId: {
         type: DataTypes.UUID,
-        defaultValue: DataTypes.UUIDV4,
-        primaryKey: true
       },
-      BankId: {
-        type: DataTypes.STRING,
-        primaryKey: true
+      bankId: {
+        type: DataTypes.UUID,
       },
       currencyValue: {
         type: DataTypes.DECIMAL(10, 2),
