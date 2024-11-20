@@ -14,6 +14,9 @@ export class AddCurrencyBankCommand extends Command {
       })
   }
 
+  /**
+   * @param {import('discord.js').Interaction} interaction
+   */
   execute(interaction) {
     const amount = interaction.options.getNumber(this.amountOption)
     // Todo: Add the currency to the bank

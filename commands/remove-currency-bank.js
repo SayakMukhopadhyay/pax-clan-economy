@@ -14,6 +14,9 @@ export class RemoveCurrencyBankCommand extends Command {
       })
   }
 
+  /**
+   * @param {import('discord.js').Interaction} interaction
+   */
   execute(interaction) {
     const amount = interaction.options.getNumber(this.amountOption)
     // Todo: Check if the currency is available with the bank and remove it

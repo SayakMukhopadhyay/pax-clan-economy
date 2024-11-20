@@ -2,6 +2,8 @@ import { config as dotenv } from 'dotenv'
 import { Client, GatewayIntentBits } from 'discord.js'
 import { CommandCollection } from './commands/command-collection.js'
 import { EventArray } from './events/event-array.js'
+import { Register } from './register.js'
+import { DB } from './db/db.js'
 
 dotenv()
 
@@ -25,5 +27,16 @@ for (const event of events.events) {
 client.login(process.env.DISCORD_TOKEN)
 
 if (process.env.NODE_ENV === 'production') {
-  import('./register.js')
+  const register = new Register()
+
+  await register.deployCommands(false)
+}
+
+const db = new DB()
+
+await db.authenticate()
+db.loadModels()
+
+if (process.env.NODE_ENV !== 'production') {
+  await db.sync()
 }

@@ -7,6 +7,9 @@ export class PingCommand extends Command {
     this.data = new SlashCommandBuilder().setName('ping').setDescription('Replies with Pong!')
   }
 
+  /**
+   * @param {import('discord.js').Interaction} interaction
+   */
   execute(interaction) {
     interaction.reply('Pong!')
   }

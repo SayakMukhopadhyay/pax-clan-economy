@@ -18,6 +18,9 @@ export class AddCurrencyCommand extends Command {
       })
   }
 
+  /**
+   * @param {import('discord.js').Interaction} interaction
+   */
   execute(interaction) {
     const user = interaction.options.getUser(this.userOption)
     const amount = interaction.options.getNumber(this.amountOption)
