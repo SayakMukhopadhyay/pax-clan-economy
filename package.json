@@ -1,0 +1,32 @@
+{
+  "name": "pax-clan-economy",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SayakMukhopadhyay/link-pages.git"
+  },
+  "keywords": [],
+  "author": "Sayak Mukhopadhyay",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/SayakMukhopadhyay/link-pages/issues"
+  },
+  "homepage": "https://github.com/SayakMukhopadhyay/link-pages#readme",
+  "dependencies": {
+    "discord.js": "^14.16.3",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.15.0",
+    "eslint": "^9.15.0",
+    "eslint-config-prettier": "^9.1.0",
+    "globals": "^15.12.0",
+    "prettier": "^3.3.3"
+  }
+}
