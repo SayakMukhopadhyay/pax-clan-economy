@@ -31,8 +31,8 @@ export class DB {
     Guild.hasOne(Bank, { foreignKey: { name: 'guildId', allowNull: false }, onDelete: 'CASCADE', onUpdate: 'CASCADE' })
     Bank.belongsTo(Guild)
 
-    User.belongsToMany(Bank, { through: UserBank, foreignKey: 'bankId' })
-    Bank.belongsToMany(User, { through: UserBank, foreignKey: 'userId' })
+    User.belongsToMany(Bank, { through: UserBank, foreignKey: 'userId' })
+    Bank.belongsToMany(User, { through: UserBank, foreignKey: 'bankId' })
   }
 
   async sync() {

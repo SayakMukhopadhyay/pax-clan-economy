@@ -1,9 +1,8 @@
 import { REST, Routes } from 'discord.js'
-import { CommandCollection } from './commands/utilities/command-collection.js'
 
 export class Register {
-  constructor() {
-    this.commands = new CommandCollection()
+  constructor(commands) {
+    this.commands = commands
   }
 
   async deployCommands(guild) {
@@ -23,6 +22,7 @@ export class Register {
         fullRoute = Routes.applicationCommands(process.env.CLIENT_ID)
       }
 
+      // const data = await rest.put(fullRoute, { body: [] })
       const data = await rest.put(fullRoute, { body: commands })
 
       console.log(`Successfully reloaded ${data.length} application (/) commands.`)

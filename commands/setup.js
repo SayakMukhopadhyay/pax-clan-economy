@@ -22,7 +22,7 @@ export class SetupCommand extends Command {
     }
     const guildId = interaction.guildId
 
-    if (!(await findGuild(guildId))) {
+    if (await findGuild(guildId)) {
       interaction.reply(`The bot is already setup`)
       return
     }

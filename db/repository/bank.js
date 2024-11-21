@@ -33,3 +33,17 @@ export function updateCurrencyName(currencyName, guildId) {
     }
   )
 }
+
+export function addCurrencyInBank(amount, guildId, transaction) {
+  return Bank.increment(
+    {
+      currencyValue: amount
+    },
+    {
+      where: {
+        guildId: guildId
+      },
+      transaction: transaction
+    }
+  )
+}
