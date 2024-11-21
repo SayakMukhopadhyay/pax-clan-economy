@@ -1,4 +1,4 @@
-import { Events } from 'discord.js'
+import { ActivityType, Events } from 'discord.js'
 import { Event } from './event.js'
 
 export class ClientReady extends Event {
@@ -10,5 +10,7 @@ export class ClientReady extends Event {
 
   execute(client) {
     console.log(`Ready! Logged in as ${client.user.tag}`)
+
+    client.user.setActivity('the crafting area', { type: ActivityType.Watching })
   }
 }
