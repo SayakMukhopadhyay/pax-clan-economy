@@ -148,7 +148,11 @@ export class CurrencyCommand extends Command {
       return
     }
 
-    if (!(await checkBankManagerPermissions(interaction.member, bank.bankManagerRoleId))) {
+    if (
+      !(await checkBankManagerPermissions(interaction.member, bank.bankManagerRoleId)) &&
+      interaction.options.getSubcommand() !== this.giveCommand &&
+      interaction.options.getSubcommand() !== this.walletCommand
+    ) {
       interaction.reply(BANK_MANAGER_CHECK)
       return
     }
