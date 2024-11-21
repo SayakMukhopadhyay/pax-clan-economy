@@ -11,7 +11,7 @@ import {
   updateThankValue
 } from '../db/repository/bank.js'
 
-export class BankManagerCommand extends Command {
+export class BankCommand extends Command {
   constructor() {
     super()
     this.setCommand = 'set'
