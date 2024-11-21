@@ -3,7 +3,7 @@ import { Command } from './command.js'
 import { checkBankManagerPermissions } from './utilities/permissions.js'
 import { BANK_MANAGER_CHECK, BANK_MANAGER_ROLE_CHECK, SETUP_CHECK } from '../responses.js'
 import { findGuild } from '../db/repository/guild.js'
-import { addCurrencyInBank, findBank, updateCurrencyName } from '../db/repository/bank.js'
+import { addCurrencyInBank, findBank } from '../db/repository/bank.js'
 import { addCurrencyToUser, findUserBank } from '../db/repository/user-bank.js'
 import { createUser, findUser } from '../db/repository/user.js'
 
@@ -11,8 +11,6 @@ export class CurrencyCommand extends Command {
   constructor(sequelize) {
     super()
     this.sequelize = sequelize
-    this.setNameCommand = 'set-name'
-    this.showNameCommand = 'show-name'
     this.giveCommand = 'give'
     this.walletCommand = 'wallet'
     this.vaultCommand = 'vault'
@@ -20,24 +18,12 @@ export class CurrencyCommand extends Command {
     this.removeCommand = 'remove'
     this.bankCommandGroup = 'bank'
     this.userCommandGroup = 'user'
-    this.currencyOption = 'currency'
     this.userOption = 'user'
     this.amountOption = 'amount'
 
     this.data = new SlashCommandBuilder()
       .setName('currency')
       .setDescription('Manages the currency')
-      .addSubcommand((subcommand) => {
-        return subcommand
-          .setName(this.setNameCommand)
-          .setDescription('Sets the currency')
-          .addStringOption((option) => {
-            return option.setName(this.currencyOption).setDescription('The currency to set').setRequired(true)
-          })
-      })
-      .addSubcommand((subcommand) => {
-        return subcommand.setName(this.showNameCommand).setDescription('Shows the current currency')
-      })
       .addSubcommand((subcommand) => {
         return subcommand
           .setName(this.giveCommand)
@@ -157,18 +143,6 @@ export class CurrencyCommand extends Command {
       return
     }
 
-    if (interaction.options.getSubcommand() === this.setNameCommand) {
-      const currency = interaction.options.getString(this.currencyOption)
-
-      await updateCurrencyName(currency, guild.id)
-
-      interaction.reply(`Currency set to ${currency}`)
-      return
-    }
-    if (interaction.options.getSubcommand() === this.showNameCommand) {
-      interaction.reply(`Currency is ${bank.currencyName}`)
-      return
-    }
     if (interaction.options.getSubcommandGroup() === this.bankCommandGroup) {
       if (interaction.options.getSubcommand() === this.addCommand) {
         const amount = interaction.options.getNumber(this.amountOption)

@@ -6,7 +6,7 @@ export function checkManageGuildPermissions(member) {
 }
 
 export function checkBankManagerPermissions(member, bankManagerRoleId) {
-  return member.roles.cache.some((role) => role.id === bankManagerRoleId)
+  return checkManageGuildPermissions(member) || member.roles.cache.some((role) => role.id === bankManagerRoleId)
 }
 
 export async function checkBotSetup(guildId) {

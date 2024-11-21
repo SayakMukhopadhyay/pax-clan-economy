@@ -47,3 +47,29 @@ export function addCurrencyInBank(amount, guildId, transaction) {
     }
   )
 }
+
+export function updateThankValue(amount, guildId) {
+  return Bank.update(
+    {
+      thankValue: amount
+    },
+    {
+      where: {
+        guildId: guildId
+      }
+    }
+  )
+}
+
+export function updateThankCooldown(minutes, guildId) {
+  return Bank.update(
+    {
+      thankCooldownMinutes: minutes
+    },
+    {
+      where: {
+        guildId: guildId
+      }
+    }
+  )
+}
