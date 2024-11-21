@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from 'discord.js'
 import { Command } from './command.js'
-import { checkBotSetup, checkManageGuildPermissions } from './utilities/permissions.js'
-import { deleteLogChannel, updateLogChannel } from '../db/repository/guild.js'
+import { checkManageGuildPermissions } from './utilities/permissions.js'
+import { deleteLogChannel, findGuild, updateLogChannel } from '../db/repository/guild.js'
 import { ADMIN_CHECK, SETUP_CHECK } from '../responses.js'
 
 export class LogChannelCommand extends Command {
@@ -9,11 +9,12 @@ export class LogChannelCommand extends Command {
     super()
     this.enableCommand = 'enable'
     this.disableCommand = 'disable'
+    this.showCommand = 'show'
     this.channelOption = 'channel'
 
     this.data = new SlashCommandBuilder()
       .setName('log-channel')
-      .setDescription('Sets the channel to log transactions to')
+      .setDescription('Manages the channel to log transactions to')
       .addSubcommand((subcommand) => {
         return subcommand
           .setName(this.enableCommand)
@@ -28,6 +29,9 @@ export class LogChannelCommand extends Command {
       .addSubcommand((subcommand) => {
         return subcommand.setName(this.disableCommand).setDescription('Disables transaction logging')
       })
+      .addSubcommand((subcommand) => {
+        return subcommand.setName(this.showCommand).setDescription('Shows the current log channel')
+      })
   }
 
   /**
@@ -39,7 +43,9 @@ export class LogChannelCommand extends Command {
       return
     }
 
-    if (!(await checkBotSetup(interaction.guildId))) {
+    const guild = await findGuild(interaction.guildId)
+
+    if (!guild) {
       interaction.reply(SETUP_CHECK)
       return
     }
@@ -50,12 +56,32 @@ export class LogChannelCommand extends Command {
       await updateLogChannel(channel.id, interaction.guildId)
 
       interaction.reply(`Logging enabled in channel ${channel}`)
-    } else if (interaction.options.getSubcommand() === this.disableCommand) {
+      return
+    }
+    if (interaction.options.getSubcommand() === this.disableCommand) {
       await deleteLogChannel(interaction.guildId)
 
       interaction.reply(`Logging disabled`)
-    } else {
-      interaction.reply('Invalid subcommand')
+      return
     }
+    if (interaction.options.getSubcommand() === this.showCommand) {
+      if (!guild.logChannelId) {
+        interaction.reply(`Logging is disabled`)
+        return
+      }
+
+      const channel = interaction.guild.channels.cache.get(guild.logChannelId)
+
+      if (!channel) {
+        interaction.reply(
+          `Logging is enabled in channel with id ${guild.logChannelId} but the channel doesn't seem to exist.`
+        )
+        return
+      }
+
+      interaction.reply(`Logging is enabled in ${channel}`)
+      return
+    }
+    interaction.reply('Invalid subcommand')
   }
 }
