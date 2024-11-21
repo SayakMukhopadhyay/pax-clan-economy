@@ -1,7 +1,9 @@
 import { SlashCommandBuilder } from 'discord.js'
 import { Command } from './command.js'
-import { Guild } from '../db/models/guild.js'
-import { Bank } from '../db/models/bank.js'
+import { checkBankManagerPermissions } from './utilities/permissions.js'
+import { BANK_MANAGER_CHECK, SETUP_CHECK } from '../responses.js'
+import { findGuild } from '../db/repository/guild.js'
+import { updateCurrencyName } from '../db/repository/bank.js'
 
 export class CurrencyCommand extends Command {
   constructor() {
@@ -20,33 +22,21 @@ export class CurrencyCommand extends Command {
    * @param {import('discord.js').Interaction} interaction
    */
   async execute(interaction) {
+    if (!(await checkBankManagerPermissions(interaction.member))) {
+      interaction.reply(BANK_MANAGER_CHECK)
+      return
+    }
     const currency = interaction.options.getString(this.currencyOption)
 
-    const guildId = await this.getGuildID(interaction.guildId)
-    await this.updateCurrencyName(currency, guildId.id)
+    const guild = await findGuild(interaction.guildId)
+
+    if (guild === null) {
+      interaction.reply(SETUP_CHECK)
+      return
+    }
+
+    await updateCurrencyName(currency, guild.id)
 
     interaction.reply(`Currency set to ${currency}`)
-  }
-
-  getGuildID(guildId) {
-    return Guild.findOne({
-      attributes: ['id'],
-      where: {
-        discordId: guildId
-      }
-    })
-  }
-
-  updateCurrencyName(currencyName, guildId) {
-    return Bank.update(
-      {
-        currencyName: currencyName
-      },
-      {
-        where: {
-          guildId: guildId
-        }
-      }
-    )
   }
 }

@@ -1,7 +1,7 @@
 import { config as dotenv } from 'dotenv'
 import { Client, GatewayIntentBits } from 'discord.js'
-import { CommandCollection } from './commands/command-collection.js'
-import { EventArray } from './events/event-array.js'
+import { CommandCollection } from './commands/utilities/command-collection.js'
+import { EventArray } from './events/utilities/event-array.js'
 import { Register } from './register.js'
 import { DB } from './db/db.js'
 

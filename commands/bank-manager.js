@@ -1,7 +1,9 @@
 import { SlashCommandBuilder } from 'discord.js'
 import { Command } from './command.js'
-import { Bank } from '../db/models/bank.js'
-import { Guild } from '../db/models/guild.js'
+import { checkManageGuildPermissions } from './utilities/permissions.js'
+import { findGuild } from '../db/repository/guild.js'
+import { ADMIN_CHECK, SETUP_CHECK } from '../responses.js'
+import { updateBankManagerRole } from '../db/repository/bank.js'
 
 export class BankManagerCommand extends Command {
   constructor() {
@@ -20,33 +22,21 @@ export class BankManagerCommand extends Command {
    * @param {import('discord.js').Interaction} interaction
    */
   async execute(interaction) {
+    if (!checkManageGuildPermissions(interaction.member)) {
+      interaction.reply(ADMIN_CHECK)
+      return
+    }
     const role = interaction.options.getRole(this.roleOption)
 
-    const guildId = await this.getGuildID(interaction.guildId)
-    await this.updateRole(role.id, guildId.id)
+    const guild = await findGuild(interaction.guildId)
+
+    if (guild === null) {
+      interaction.reply(SETUP_CHECK)
+      return
+    }
+
+    await updateBankManagerRole(role.id, guild.id)
 
     interaction.reply(`Bank enabled for role ${role}`)
-  }
-
-  getGuildID(guildId) {
-    return Guild.findOne({
-      attributes: ['id'],
-      where: {
-        discordId: guildId
-      }
-    })
-  }
-
-  updateRole(roleId, guildId) {
-    return Bank.update(
-      {
-        bankManagerRoleId: roleId
-      },
-      {
-        where: {
-          guildId: guildId
-        }
-      }
-    )
   }
 }

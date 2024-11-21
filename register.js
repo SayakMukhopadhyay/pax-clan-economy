@@ -1,5 +1,5 @@
 import { REST, Routes } from 'discord.js'
-import { CommandCollection } from './commands/command-collection.js'
+import { CommandCollection } from './commands/utilities/command-collection.js'
 
 export class Register {
   constructor() {

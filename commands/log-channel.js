@@ -1,6 +1,8 @@
 import { SlashCommandBuilder } from 'discord.js'
 import { Command } from './command.js'
-import { Guild } from '../db/models/guild.js'
+import { checkBotSetup, checkManageGuildPermissions } from './utilities/permissions.js'
+import { deleteLogChannel, updateLogChannel } from '../db/repository/guild.js'
+import { ADMIN_CHECK, SETUP_CHECK } from '../responses.js'
 
 export class LogChannelCommand extends Command {
   constructor() {
@@ -32,44 +34,28 @@ export class LogChannelCommand extends Command {
    * @param {import('discord.js').Interaction} interaction
    */
   async execute(interaction) {
+    if (!checkManageGuildPermissions(interaction.member)) {
+      interaction.reply(ADMIN_CHECK)
+      return
+    }
+
+    if (!(await checkBotSetup(interaction.guildId))) {
+      interaction.reply(SETUP_CHECK)
+      return
+    }
+
     if (interaction.options.getSubcommand() === this.enableCommand) {
       const channel = interaction.options.getChannel(this.channelOption)
 
-      await this.updateChannel(channel.id, interaction.guildId)
+      await updateLogChannel(channel.id, interaction.guildId)
 
       interaction.reply(`Logging enabled in channel ${channel}`)
     } else if (interaction.options.getSubcommand() === this.disableCommand) {
-      await this.deleteChannel(interaction.guildId)
+      await deleteLogChannel(interaction.guildId)
 
       interaction.reply(`Logging disabled`)
     } else {
       interaction.reply('Invalid subcommand')
     }
-  }
-
-  updateChannel(channelId, guildId) {
-    return Guild.update(
-      {
-        logChannelId: channelId
-      },
-      {
-        where: {
-          discordId: guildId
-        }
-      }
-    )
-  }
-
-  deleteChannel(guildId) {
-    return Guild.update(
-      {
-        logChannelId: null
-      },
-      {
-        where: {
-          discordId: guildId
-        }
-      }
-    )
   }
 }

@@ -1,5 +1,5 @@
-import { ClientReady } from './client-ready.js'
-import { InteractionCreate } from './interaction-create.js'
+import { ClientReady } from '../client-ready.js'
+import { InteractionCreate } from '../interaction-create.js'
 
 export class EventArray {
   constructor() {
