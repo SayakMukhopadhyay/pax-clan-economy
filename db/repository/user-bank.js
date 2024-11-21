@@ -39,3 +39,11 @@ export function updateUserThankTime(userId, bankId, transaction) {
     }
   )
 }
+
+export function calculateSumValue(bankId) {
+  return UserBank.sum('currencyValue', {
+    where: {
+      bankId: bankId
+    }
+  })
+}

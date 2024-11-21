@@ -4,7 +4,7 @@ import { checkBankManagerPermissions } from './utilities/permissions.js'
 import { BANK_MANAGER_CHECK, BANK_MANAGER_ROLE_CHECK, SETUP_CHECK } from '../responses.js'
 import { findGuild } from '../db/repository/guild.js'
 import { addCurrencyInBank, findBank } from '../db/repository/bank.js'
-import { addCurrencyToUser, findUserBank } from '../db/repository/user-bank.js'
+import { addCurrencyToUser, calculateSumValue, findUserBank } from '../db/repository/user-bank.js'
 import { createUser, findUser } from '../db/repository/user.js'
 
 export class CurrencyCommand extends Command {
@@ -14,6 +14,7 @@ export class CurrencyCommand extends Command {
     this.giveCommand = 'give'
     this.walletCommand = 'wallet'
     this.vaultCommand = 'vault'
+    this.circulationCommand = 'circulation'
     this.addCommand = 'add'
     this.removeCommand = 'remove'
     this.bankCommandGroup = 'bank'
@@ -74,6 +75,11 @@ export class CurrencyCommand extends Command {
             return subcommand
               .setName(this.vaultCommand)
               .setDescription('Shows the amount of currency in the bank vault')
+          })
+          .addSubcommand((subcommand) => {
+            return subcommand
+              .setName(this.circulationCommand)
+              .setDescription('Shows the amount of currency in circulation')
           })
       })
       .addSubcommandGroup((subcommandGroup) => {
@@ -169,6 +175,16 @@ export class CurrencyCommand extends Command {
       }
       if (interaction.options.getSubcommand() === this.vaultCommand) {
         interaction.reply(`The bank has ${bank.currencyValue} ${bank.currencyName} in the vault`)
+        return
+      }
+      if (interaction.options.getSubcommand() === this.circulationCommand) {
+        const totalCurrency = (await calculateSumValue(bank.id)) + parseFloat(bank.currencyValue)
+        let addendum = ''
+        if (bank.currencyValue < 0) {
+          addendum = `Tha bank has a debt of ${-bank.currencyValue} ${bank.currencyName}.`
+        }
+
+        interaction.reply(`A total of ${totalCurrency} ${bank.currencyName} is in circulation. ${addendum}`)
         return
       }
     }
