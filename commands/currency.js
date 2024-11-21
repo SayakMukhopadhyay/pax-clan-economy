@@ -6,6 +6,7 @@ import { findGuild } from '../db/repository/guild.js'
 import { addCurrencyInBank, findBank } from '../db/repository/bank.js'
 import { addCurrencyToUser, calculateSumValue, findUserBank } from '../db/repository/user-bank.js'
 import { createUser, findUser } from '../db/repository/user.js'
+import { logCredit, logDebit } from './utilities/logger.js'
 
 export class CurrencyCommand extends Command {
   constructor(sequelize) {
@@ -156,6 +157,16 @@ export class CurrencyCommand extends Command {
         await addCurrencyInBank(amount, guild.id)
 
         interaction.reply(`${amount} ${bank.currencyName} added to the bank vault successfully`)
+
+        await logCredit(
+          interaction.guild.channels.cache,
+          true,
+          null,
+          interaction.user,
+          amount,
+          guild.logChannelId,
+          bank.currencyName
+        )
         return
       }
       if (interaction.options.getSubcommand() === this.removeCommand) {
@@ -171,6 +182,16 @@ export class CurrencyCommand extends Command {
         await addCurrencyInBank(-amount, guild.id)
 
         interaction.reply(`${amount} ${bank.currencyName} removed from the bank vault successfully`)
+
+        await logDebit(
+          interaction.guild.channels.cache,
+          true,
+          null,
+          interaction.user,
+          amount,
+          guild.logChannelId,
+          bank.currencyName
+        )
         return
       }
       if (interaction.options.getSubcommand() === this.vaultCommand) {
@@ -212,6 +233,25 @@ export class CurrencyCommand extends Command {
         })
 
         interaction.reply(`${amount} ${bank.currencyName} added to the user ${targetUser} successfully`)
+
+        await logCredit(
+          interaction.guild.channels.cache,
+          false,
+          targetUser,
+          interaction.user,
+          amount,
+          guild.logChannelId,
+          bank.currencyName
+        )
+        await logDebit(
+          interaction.guild.channels.cache,
+          true,
+          null,
+          interaction.user,
+          amount,
+          guild.logChannelId,
+          bank.currencyName
+        )
         return
       }
       if (interaction.options.getSubcommand() === this.removeCommand) {
@@ -239,6 +279,25 @@ export class CurrencyCommand extends Command {
         })
 
         interaction.reply(`${amount} ${bank.currencyName} removed from the user ${targetUser} successfully`)
+
+        await logDebit(
+          interaction.guild.channels.cache,
+          false,
+          targetUser,
+          interaction.user,
+          amount,
+          guild.logChannelId,
+          bank.currencyName
+        )
+        await logCredit(
+          interaction.guild.channels.cache,
+          true,
+          null,
+          interaction.user,
+          amount,
+          guild.logChannelId,
+          bank.currencyName
+        )
         return
       }
     }
@@ -265,10 +324,34 @@ export class CurrencyCommand extends Command {
       })
 
       interaction.reply(`${amount} ${bank.currencyName} Currency transferred to ${targetUser} successfully`)
+
+      await logCredit(
+        interaction.guild.channels.cache,
+        false,
+        targetUser,
+        interaction.user,
+        amount,
+        guild.logChannelId,
+        bank.currencyName
+      )
+      await logDebit(
+        interaction.guild.channels.cache,
+        false,
+        interaction.user,
+        targetUser,
+        amount,
+        guild.logChannelId,
+        bank.currencyName
+      )
       return
     }
     if (interaction.options.getSubcommand() === this.walletCommand) {
       let user = await findUser(interaction.member.id)
+
+      if (!user) {
+        user = await createUser(interaction.member.id, bank)
+      }
+
       const userBank = await findUserBank(user.id, bank.id)
 
       interaction.reply(`You currently have ${userBank.currencyValue} ${bank.currencyName} in your wallet.`)

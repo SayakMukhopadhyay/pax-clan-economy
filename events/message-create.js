@@ -5,6 +5,7 @@ import { addCurrencyInBank, findBank } from '../db/repository/bank.js'
 import { addCurrencyToUser, findUserBank, updateUserThankTime } from '../db/repository/user-bank.js'
 import { findGuild } from '../db/repository/guild.js'
 import { DateTime } from 'luxon'
+import { logCredit, logDebit } from '../commands/utilities/logger.js'
 
 export class MessageCreate extends Event {
   constructor(sequelize) {
@@ -13,7 +14,11 @@ export class MessageCreate extends Event {
     this.name = Events.MessageCreate
   }
 
-  async execute(message) {
+  execute(message) {
+    this.handleThanks(message)
+  }
+
+  async handleThanks(message) {
     const content = message.content
 
     if (content.toLowerCase().includes(`thank`)) {
@@ -29,16 +34,17 @@ export class MessageCreate extends Event {
       const guild = await findGuild(message.guildId)
       const bank = await findBank(guild.id)
 
-      const currencyAddedUser = []
+      const currencyAddedUsers = []
 
       await this.sequelize.transaction(async (transaction) => {
         for (const [userId, targetUser] of mentionedUsers) {
           let user = await findUser(userId, transaction)
-          let userBank = await findUserBank(user.id, bank.id, transaction)
 
           if (!user) {
             user = await createUser(targetUser.id, bank, transaction)
           }
+
+          let userBank = await findUserBank(user.id, bank.id, transaction)
 
           const lastThankedAt = DateTime.fromJSDate(userBank.lastThankedAt)
           const timeNow = DateTime.now()
@@ -57,17 +63,40 @@ export class MessageCreate extends Event {
 
           await updateUserThankTime(user.id, bank.id, transaction)
 
-          currencyAddedUser.push(targetUser)
+          currencyAddedUsers.push(targetUser)
         }
       })
 
-      if (currencyAddedUser.length === 0) {
+      if (currencyAddedUsers.length === 0) {
         return
       }
 
       message.reply(
-        `Congratulations ${currencyAddedUser.join(', ')}! You have received ${bank.thankValue} ${bank.currencyName}.`
+        `Congratulations ${currencyAddedUsers.join(', ')}! You have received ${bank.thankValue} ${bank.currencyName}.`
       )
+
+      const channels = message.guild.channels.cache
+
+      for (const currencyAddedUser of currencyAddedUsers) {
+        await logCredit(
+          channels,
+          false,
+          currencyAddedUser,
+          message.client.user,
+          bank.thankValue,
+          guild.logChannelId,
+          bank.currencyName
+        )
+        await logDebit(
+          channels,
+          true,
+          null,
+          message.client.user,
+          bank.thankValue,
+          guild.logChannelId,
+          bank.currencyName
+        )
+      }
     }
   }
 }
