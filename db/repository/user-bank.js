@@ -24,3 +24,18 @@ export function addCurrencyToUser(amount, userId, bankId, transaction) {
     }
   )
 }
+
+export function updateUserThankTime(userId, bankId, transaction) {
+  return UserBank.update(
+    {
+      lastThankedAt: new Date()
+    },
+    {
+      where: {
+        userId: userId,
+        bankId: bankId
+      },
+      transaction: transaction
+    }
+  )
+}

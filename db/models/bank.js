@@ -18,6 +18,14 @@ export function BankInit(sequelize) {
         type: DataTypes.DECIMAL(10, 2),
         defaultValue: 0.0
       },
+      thankValue: {
+        type: DataTypes.DECIMAL(10, 2),
+        defaultValue: 1.0
+      },
+      thankCooldownMinutes: {
+        type: DataTypes.INTEGER,
+        defaultValue: 60
+      },
       bankManagerRoleId: {
         type: DataTypes.STRING
       }

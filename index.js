@@ -18,13 +18,13 @@ if (process.env.NODE_ENV !== 'production') {
 
 //Setup Discord
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages]
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]
 })
 
 const commands = new CommandCollection(db.sequelize)
 client.commands = commands.commands
 
-const events = new EventArray()
+const events = new EventArray(db.sequelize)
 
 for (const event of events.events) {
   if (event.once) {

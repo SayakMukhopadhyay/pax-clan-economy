@@ -14,6 +14,9 @@ export function UserBankInit(sequelize) {
       currencyValue: {
         type: DataTypes.DECIMAL(10, 2),
         defaultValue: 0.0
+      },
+      lastThankedAt: {
+        type: DataTypes.DATE
       }
     },
     { sequelize, modelName: 'UserBank' }
