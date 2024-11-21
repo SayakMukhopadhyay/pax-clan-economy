@@ -11,12 +11,15 @@ export class CurrencyCommand extends Command {
   constructor(sequelize) {
     super()
     this.sequelize = sequelize
-    this.setCommand = 'set'
-    this.showCommand = 'show'
+    this.setNameCommand = 'set-name'
+    this.showNameCommand = 'show-name'
+    this.giveCommand = 'give'
+    this.walletCommand = 'wallet'
+    this.vaultCommand = 'vault'
     this.addCommand = 'add'
     this.removeCommand = 'remove'
-    this.bankCommanGroup = 'bank'
-    this.userCommanGroup = 'user'
+    this.bankCommandGroup = 'bank'
+    this.userCommandGroup = 'user'
     this.currencyOption = 'currency'
     this.userOption = 'user'
     this.amountOption = 'amount'
@@ -26,18 +29,38 @@ export class CurrencyCommand extends Command {
       .setDescription('Manages the currency')
       .addSubcommand((subcommand) => {
         return subcommand
-          .setName(this.setCommand)
+          .setName(this.setNameCommand)
           .setDescription('Sets the currency')
           .addStringOption((option) => {
             return option.setName(this.currencyOption).setDescription('The currency to set').setRequired(true)
           })
       })
       .addSubcommand((subcommand) => {
-        return subcommand.setName(this.showCommand).setDescription('Shows the current currency')
+        return subcommand.setName(this.showNameCommand).setDescription('Shows the current currency')
+      })
+      .addSubcommand((subcommand) => {
+        return subcommand
+          .setName(this.giveCommand)
+          .setDescription('Transfer currency to another user')
+          .addUserOption((option) => {
+            return option
+              .setName(this.userOption)
+              .setDescription('The user to transfer the currency to')
+              .setRequired(true)
+          })
+          .addNumberOption((option) => {
+            return option
+              .setName(this.amountOption)
+              .setDescription('The amount of currency to transfer')
+              .setRequired(true)
+          })
+      })
+      .addSubcommand((subcommand) => {
+        return subcommand.setName(this.walletCommand).setDescription('Shows your current wallet')
       })
       .addSubcommandGroup((subcommandGroup) => {
         return subcommandGroup
-          .setName(this.bankCommanGroup)
+          .setName(this.bankCommandGroup)
           .setDescription("Manages bank's currency")
           .addSubcommand((subcommand) => {
             return subcommand
@@ -62,12 +85,14 @@ export class CurrencyCommand extends Command {
               })
           })
           .addSubcommand((subcommand) => {
-            return subcommand.setName(this.showCommand).setDescription('Shows the amount of currency in the bank vault')
+            return subcommand
+              .setName(this.vaultCommand)
+              .setDescription('Shows the amount of currency in the bank vault')
           })
       })
       .addSubcommandGroup((subcommandGroup) => {
         return subcommandGroup
-          .setName(this.userCommanGroup)
+          .setName(this.userCommandGroup)
           .setDescription("Manages bank's currency")
           .addSubcommand((subcommand) => {
             return subcommand
@@ -128,7 +153,7 @@ export class CurrencyCommand extends Command {
       return
     }
 
-    if (interaction.options.getSubcommand() === this.setCommand) {
+    if (interaction.options.getSubcommand() === this.setNameCommand) {
       const currency = interaction.options.getString(this.currencyOption)
 
       await updateCurrencyName(currency, guild.id)
@@ -136,16 +161,11 @@ export class CurrencyCommand extends Command {
       interaction.reply(`Currency set to ${currency}`)
       return
     }
-    if (interaction.options.getSubcommand() === this.showCommand) {
-      if (!bank.currencyName) {
-        interaction.reply(`Currency is not set`)
-        return
-      }
-
+    if (interaction.options.getSubcommand() === this.showNameCommand) {
       interaction.reply(`Currency is ${bank.currencyName}`)
       return
     }
-    if (interaction.options.getSubcommandGroup() === this.bankCommanGroup) {
+    if (interaction.options.getSubcommandGroup() === this.bankCommandGroup) {
       if (interaction.options.getSubcommand() === this.addCommand) {
         const amount = interaction.options.getNumber(this.amountOption)
 
@@ -169,15 +189,15 @@ export class CurrencyCommand extends Command {
         interaction.reply(`${amount} ${bank.currencyName} removed from the bank vault successfully`)
         return
       }
-      if (interaction.options.getSubcommand() === this.showCommand) {
+      if (interaction.options.getSubcommand() === this.vaultCommand) {
         interaction.reply(`The bank has ${bank.currencyValue} ${bank.currencyName} in the vault`)
         return
       }
     }
-    if (interaction.options.getSubcommandGroup() === this.userCommanGroup) {
+    if (interaction.options.getSubcommandGroup() === this.userCommandGroup) {
       if (interaction.options.getSubcommand() === this.addCommand) {
         const amount = interaction.options.getNumber(this.amountOption)
-        const user = interaction.options.getUser(this.userOption)
+        const targetUser = interaction.options.getUser(this.userOption)
 
         if (bank.currencyValue < amount) {
           interaction.reply(
@@ -187,46 +207,79 @@ export class CurrencyCommand extends Command {
         }
 
         await this.sequelize.transaction(async (transaction) => {
-          let dbUser = await findUser(user.id, transaction)
+          let user = await findUser(targetUser.id, transaction)
 
-          if (!dbUser) {
-            dbUser = await createUser(user.id, bank, transaction)
+          if (!user) {
+            user = await createUser(targetUser.id, bank, transaction)
           }
           await addCurrencyInBank(-amount, guild.id, transaction)
 
-          await addCurrencyToUser(amount, dbUser.id, bank.id, transaction)
+          await addCurrencyToUser(amount, user.id, bank.id, transaction)
         })
 
-        interaction.reply(`${amount} ${bank.currencyName} added to the user ${user} successfully`)
+        interaction.reply(`${amount} ${bank.currencyName} added to the user ${targetUser} successfully`)
         return
       }
       if (interaction.options.getSubcommand() === this.removeCommand) {
         const amount = interaction.options.getNumber(this.amountOption)
-        const user = interaction.options.getUser(this.userOption)
+        const targetUser = interaction.options.getUser(this.userOption)
 
         await this.sequelize.transaction(async (transaction) => {
-          let dbUser = await findUser(user.id, transaction)
+          let user = await findUser(targetUser.id, transaction)
 
-          if (!dbUser) {
-            dbUser = await createUser(user.id, bank, transaction)
+          if (!user) {
+            user = await createUser(targetUser.id, bank, transaction)
           }
 
-          const userBank = await findUserBank(dbUser.id, bank.id, transaction)
+          const userBank = await findUserBank(user.id, bank.id, transaction)
 
           if (userBank.currencyValue < amount) {
             interaction.reply(
-              `${user} doesn't have enough currency to give ${amount} ${bank.currencyName}. It only has ${userBank.currencyValue} ${bank.currencyName}.`
+              `${targetUser} doesn't have enough currency to give ${amount} ${bank.currencyName}. It only has ${userBank.currencyValue} ${bank.currencyName}.`
             )
             return
           }
           await addCurrencyInBank(amount, guild.id, transaction)
 
-          await addCurrencyToUser(-amount, dbUser.id, bank.id, transaction)
+          await addCurrencyToUser(-amount, user.id, bank.id, transaction)
         })
 
-        interaction.reply(`${amount} ${bank.currencyName} removed from the user ${user} successfully`)
+        interaction.reply(`${amount} ${bank.currencyName} removed from the user ${targetUser} successfully`)
         return
       }
+    }
+    if (interaction.options.getSubcommand() === this.giveCommand) {
+      const amount = interaction.options.getNumber(this.amountOption)
+      const targetUser = interaction.options.getUser(this.userOption)
+      const sourceUser = interaction.member
+
+      await this.sequelize.transaction(async (transaction) => {
+        let targetDBUser = await findUser(targetUser.id, transaction)
+
+        if (!targetDBUser) {
+          targetDBUser = await createUser(targetUser.id, bank, transaction)
+        }
+
+        let sourceDBUser = await findUser(sourceUser.id, transaction)
+
+        if (!sourceDBUser) {
+          sourceDBUser = await createUser(sourceUser.id, bank, transaction)
+        }
+
+        await addCurrencyToUser(amount, targetDBUser.id, bank.id, transaction)
+        await addCurrencyToUser(-amount, sourceDBUser.id, bank.id, transaction)
+      })
+
+      interaction.reply(`${amount} ${bank.currencyName} Currency transferred to ${targetUser} successfully`)
+      return
+    }
+    if (interaction.options.getSubcommand() === this.walletCommand) {
+      let user = await findUser(interaction.member.id)
+      const userBank = await findUserBank(user.id, bank.id)
+
+      interaction.reply(`You currently have ${userBank.currencyValue} ${bank.currencyName} in your wallet.`)
+
+      return
     }
     interaction.reply('Invalid subcommand')
   }
