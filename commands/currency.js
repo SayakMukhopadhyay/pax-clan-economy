@@ -131,14 +131,14 @@ export class CurrencyCommand extends Command {
     const guild = await findGuild(interaction.guildId)
 
     if (!guild) {
-      interaction.reply(SETUP_CHECK)
+      await interaction.reply(SETUP_CHECK)
       return
     }
 
     const bank = await findBank(guild.id)
 
     if (!bank.bankManagerRoleId) {
-      interaction.reply(BANK_MANAGER_ROLE_CHECK)
+      await interaction.reply(BANK_MANAGER_ROLE_CHECK)
       return
     }
 
@@ -147,7 +147,7 @@ export class CurrencyCommand extends Command {
       interaction.options.getSubcommand() !== this.giveCommand &&
       interaction.options.getSubcommand() !== this.walletCommand
     ) {
-      interaction.reply(BANK_MANAGER_CHECK)
+      await interaction.reply(BANK_MANAGER_CHECK)
       return
     }
 
@@ -157,7 +157,7 @@ export class CurrencyCommand extends Command {
 
         await addCurrencyInBank(amount, guild.id)
 
-        interaction.reply(`${amount} ${bank.currencyName} added to the bank vault successfully`)
+        await interaction.reply(`${amount} ${bank.currencyName} added to the bank vault successfully`)
 
         await logCredit(
           interaction.guild.channels.cache,
@@ -174,7 +174,7 @@ export class CurrencyCommand extends Command {
         const amount = interaction.options.getNumber(this.amountOption)
 
         if (bank.currencyValue < amount) {
-          interaction.reply(
+          await interaction.reply(
             `Bank doesn't have enough currency to remove ${amount} ${bank.currencyName}. It only has ${bank.currencyValue} ${bank.currencyName}.`
           )
           return
@@ -182,7 +182,7 @@ export class CurrencyCommand extends Command {
 
         await addCurrencyInBank(-amount, guild.id)
 
-        interaction.reply(`${amount} ${bank.currencyName} removed from the bank vault successfully`)
+        await interaction.reply(`${amount} ${bank.currencyName} removed from the bank vault successfully`)
 
         await logDebit(
           interaction.guild.channels.cache,
@@ -196,7 +196,7 @@ export class CurrencyCommand extends Command {
         return
       }
       if (interaction.options.getSubcommand() === this.vaultCommand) {
-        interaction.reply(`The bank has ${bank.currencyValue} ${bank.currencyName} in the vault`)
+        await interaction.reply(`The bank has ${bank.currencyValue} ${bank.currencyName} in the vault`)
         return
       }
       if (interaction.options.getSubcommand() === this.circulationCommand) {
@@ -206,7 +206,7 @@ export class CurrencyCommand extends Command {
           addendum = `Tha bank has a debt of ${-bank.currencyValue} ${bank.currencyName}.`
         }
 
-        interaction.reply(`A total of ${totalCurrency} ${bank.currencyName} is in circulation. ${addendum}`)
+        await interaction.reply(`A total of ${totalCurrency} ${bank.currencyName} is in circulation. ${addendum}`)
         return
       }
     }
@@ -216,7 +216,7 @@ export class CurrencyCommand extends Command {
         const targetUser = interaction.options.getUser(this.userOption)
 
         if (bank.currencyValue < amount) {
-          interaction.reply(
+          await interaction.reply(
             `Bank doesn't have enough currency to give ${amount} ${bank.currencyName}. It only has ${bank.currencyValue} ${bank.currencyName}.`
           )
           return
@@ -233,7 +233,7 @@ export class CurrencyCommand extends Command {
           await addCurrencyToUser(amount, user.id, bank.id, transaction)
         })
 
-        interaction.reply(`${amount} ${bank.currencyName} added to the user ${targetUser} successfully`)
+        await interaction.reply(`${amount} ${bank.currencyName} added to the user ${targetUser} successfully`)
 
         await logCredit(
           interaction.guild.channels.cache,
@@ -269,8 +269,8 @@ export class CurrencyCommand extends Command {
           const userBank = await findUserBank(user.id, bank.id, transaction)
 
           if (userBank.currencyValue < amount) {
-            interaction.reply(
-              `${targetUser} doesn't have enough currency to give ${amount} ${bank.currencyName}. It only has ${userBank.currencyValue} ${bank.currencyName}.`
+            await interaction.reply(
+              `${targetUser} doesn't have enough currency to remove ${amount} ${bank.currencyName}. They only have ${userBank.currencyValue} ${bank.currencyName}.`
             )
             return
           }
@@ -279,7 +279,7 @@ export class CurrencyCommand extends Command {
           await addCurrencyToUser(-amount, user.id, bank.id, transaction)
         })
 
-        interaction.reply(`${amount} ${bank.currencyName} removed from the user ${targetUser} successfully`)
+        await interaction.reply(`${amount} ${bank.currencyName} removed from the user ${targetUser} successfully`)
 
         await logDebit(
           interaction.guild.channels.cache,
@@ -323,8 +323,8 @@ export class CurrencyCommand extends Command {
         const sourceDBUserBank = await findUserBank(sourceDBUser.id, bank.id, transaction)
 
         if (sourceDBUserBank.currencyValue < amount) {
-          interaction.reply(
-            `${sourceUser} doesn't have enough currency to give ${amount} ${bank.currencyName}. It only has ${sourceDBUserBank.currencyValue} ${bank.currencyName}.`
+          await interaction.reply(
+            `${sourceUser} doesn't have enough currency to give ${amount} ${bank.currencyName}. They only have ${sourceDBUserBank.currencyValue} ${bank.currencyName}.`
           )
           return
         }
@@ -333,7 +333,7 @@ export class CurrencyCommand extends Command {
         await addCurrencyToUser(-amount, sourceDBUser.id, bank.id, transaction)
       })
 
-      interaction.reply(`${amount} ${bank.currencyName} Currency transferred to ${targetUser} successfully`)
+      await interaction.reply(`${amount} ${bank.currencyName} Currency transferred to ${targetUser} successfully`)
 
       await logCredit(
         interaction.guild.channels.cache,
@@ -364,10 +364,10 @@ export class CurrencyCommand extends Command {
 
       const userBank = await findUserBank(user.id, bank.id)
 
-      interaction.reply(`You currently have ${userBank.currencyValue} ${bank.currencyName} in your wallet.`)
+      await interaction.reply(`You currently have ${userBank.currencyValue} ${bank.currencyName} in your wallet.`)
 
       return
     }
-    interaction.reply('Invalid subcommand')
+    await interaction.reply('Invalid subcommand')
   }
 }
