@@ -112,15 +112,16 @@ export class BankCommand extends Command {
     }
 
     const guild = await findGuild(interaction.guildId)
+
+    if (!guild) {
+      interaction.reply(SETUP_CHECK)
+      return
+    }
+
     const bank = await findBank(guild.id)
 
     if (!(await checkBankManagerPermissions(interaction.member, bank.bankManagerRoleId))) {
       interaction.reply(BANK_MANAGER_CHECK)
-      return
-    }
-
-    if (!guild) {
-      interaction.reply(SETUP_CHECK)
       return
     }
 

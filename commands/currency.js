@@ -129,12 +129,13 @@ export class CurrencyCommand extends Command {
    */
   async execute(interaction) {
     const guild = await findGuild(interaction.guildId)
-    const bank = await findBank(guild.id)
 
     if (!guild) {
       interaction.reply(SETUP_CHECK)
       return
     }
+
+    const bank = await findBank(guild.id)
 
     if (!bank.bankManagerRoleId) {
       interaction.reply(BANK_MANAGER_ROLE_CHECK)
