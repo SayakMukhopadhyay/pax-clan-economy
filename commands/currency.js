@@ -320,6 +320,15 @@ export class CurrencyCommand extends Command {
           sourceDBUser = await createUser(sourceUser.id, bank, transaction)
         }
 
+        const sourceDBUserBank = await findUserBank(sourceDBUser.id, bank.id, transaction)
+
+        if (sourceDBUserBank.currencyValue < amount) {
+          interaction.reply(
+            `${sourceUser} doesn't have enough currency to give ${amount} ${bank.currencyName}. It only has ${sourceDBUserBank.currencyValue} ${bank.currencyName}.`
+          )
+          return
+        }
+
         await addCurrencyToUser(amount, targetDBUser.id, bank.id, transaction)
         await addCurrencyToUser(-amount, sourceDBUser.id, bank.id, transaction)
       })
