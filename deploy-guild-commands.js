@@ -6,6 +6,7 @@ dotenv()
 
 const register = new Register(new CommandCollection())
 
-const guild = process.argv[2] === 'true'
+const perGuild = process.argv[2] === 'true'
+const remove = process.argv[3] === 'true'
 
-register.deployCommands(guild)
+register.deployCommands(perGuild, remove)

@@ -1,11 +1,18 @@
 import { REST, Routes } from 'discord.js'
+import { DB } from './db/db.js'
+import { Guild } from './db/models/guild.js'
 
 export class Register {
   constructor(commands) {
     this.commands = commands
+
+    this.db = new DB()
   }
 
-  async deployCommands(guild) {
+  async deployCommands(perGuild, remove) {
+    await this.db.authenticate()
+    this.db.loadModels()
+
     const rest = new REST().setToken(process.env.DISCORD_TOKEN)
     try {
       console.log(`Started refreshing ${this.commands.commands.size} application (/) commands.`)
@@ -14,18 +21,29 @@ export class Register {
         return command.data.toJSON()
       })
 
-      let fullRoute
-
-      if (guild) {
-        fullRoute = Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID)
-      } else {
-        fullRoute = Routes.applicationCommands(process.env.CLIENT_ID)
+      if (remove) {
+        commands = []
       }
 
-      // const data = await rest.put(fullRoute, { body: [] })
-      const data = await rest.put(fullRoute, { body: commands })
+      let fullRoute
 
-      console.log(`Successfully reloaded ${data.length} application (/) commands.`)
+      if (perGuild) {
+        const allGuilds = await Guild.findAll()
+
+        for (const guild of allGuilds) {
+          fullRoute = Routes.applicationGuildCommands(process.env.CLIENT_ID, guild.discordId)
+
+          const data = await rest.put(fullRoute, { body: commands })
+
+          console.log(`Successfully reloaded ${data.length} application (/) commands for guild ${guild.id}.`)
+        }
+      } else {
+        fullRoute = Routes.applicationCommands(process.env.CLIENT_ID)
+
+        const data = await rest.put(fullRoute, { body: commands })
+
+        console.log(`Successfully reloaded ${data.length} application (/) commands.`)
+      }
     } catch (error) {
       console.error(error)
     }
