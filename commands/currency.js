@@ -221,13 +221,13 @@ export class CurrencyCommand extends Command {
           )
           return
         }
+        let user = await findUser(targetUser.id)
+
+        if (!user) {
+          user = await createUser(targetUser.id, bank)
+        }
 
         await this.sequelize.transaction(async (transaction) => {
-          let user = await findUser(targetUser.id, transaction)
-
-          if (!user) {
-            user = await createUser(targetUser.id, bank, transaction)
-          }
           await addCurrencyInBank(-amount, guild.id, transaction)
 
           await addCurrencyToUser(amount, user.id, bank.id, transaction)
@@ -259,21 +259,22 @@ export class CurrencyCommand extends Command {
         const amount = interaction.options.getNumber(this.amountOption)
         const targetUser = interaction.options.getUser(this.userOption)
 
+        let user = await findUser(targetUser.id)
+
+        if (!user) {
+          user = await createUser(targetUser.id, bank)
+        }
+
+        const userBank = await findUserBank(user.id, bank.id)
+
+        if (userBank.currencyValue < amount) {
+          await interaction.reply(
+            `${targetUser} doesn't have enough currency to remove ${amount} ${bank.currencyName}. They only have ${userBank.currencyValue} ${bank.currencyName}.`
+          )
+          return
+        }
+
         await this.sequelize.transaction(async (transaction) => {
-          let user = await findUser(targetUser.id, transaction)
-
-          if (!user) {
-            user = await createUser(targetUser.id, bank, transaction)
-          }
-
-          const userBank = await findUserBank(user.id, bank.id, transaction)
-
-          if (userBank.currencyValue < amount) {
-            await interaction.reply(
-              `${targetUser} doesn't have enough currency to remove ${amount} ${bank.currencyName}. They only have ${userBank.currencyValue} ${bank.currencyName}.`
-            )
-            return
-          }
           await addCurrencyInBank(amount, guild.id, transaction)
 
           await addCurrencyToUser(-amount, user.id, bank.id, transaction)
@@ -307,28 +308,28 @@ export class CurrencyCommand extends Command {
       const targetUser = interaction.options.getUser(this.userOption)
       const sourceUser = interaction.member
 
+      let targetDBUser = await findUser(targetUser.id)
+
+      if (!targetDBUser) {
+        targetDBUser = await createUser(targetUser.id, bank)
+      }
+
+      let sourceDBUser = await findUser(sourceUser.id)
+
+      if (!sourceDBUser) {
+        sourceDBUser = await createUser(sourceUser.id, bank)
+      }
+
+      const sourceDBUserBank = await findUserBank(sourceDBUser.id, bank.id)
+
+      if (sourceDBUserBank.currencyValue < amount) {
+        await interaction.reply(
+          `${sourceUser} doesn't have enough currency to give ${amount} ${bank.currencyName}. They only have ${sourceDBUserBank.currencyValue} ${bank.currencyName}.`
+        )
+        return
+      }
+
       await this.sequelize.transaction(async (transaction) => {
-        let targetDBUser = await findUser(targetUser.id, transaction)
-
-        if (!targetDBUser) {
-          targetDBUser = await createUser(targetUser.id, bank, transaction)
-        }
-
-        let sourceDBUser = await findUser(sourceUser.id, transaction)
-
-        if (!sourceDBUser) {
-          sourceDBUser = await createUser(sourceUser.id, bank, transaction)
-        }
-
-        const sourceDBUserBank = await findUserBank(sourceDBUser.id, bank.id, transaction)
-
-        if (sourceDBUserBank.currencyValue < amount) {
-          await interaction.reply(
-            `${sourceUser} doesn't have enough currency to give ${amount} ${bank.currencyName}. They only have ${sourceDBUserBank.currencyValue} ${bank.currencyName}.`
-          )
-          return
-        }
-
         await addCurrencyToUser(amount, targetDBUser.id, bank.id, transaction)
         await addCurrencyToUser(-amount, sourceDBUser.id, bank.id, transaction)
       })
