@@ -18,6 +18,6 @@ export function GuildInit(sequelize) {
         type: DataTypes.STRING
       }
     },
-    { sequelize, modelName: 'Guild' }
+    { sequelize, modelName: 'guild' }
   )
 }

@@ -30,6 +30,6 @@ export function BankInit(sequelize) {
         type: DataTypes.STRING
       }
     },
-    { sequelize, modelName: 'Bank' }
+    { sequelize, modelName: 'bank' }
   )
 }

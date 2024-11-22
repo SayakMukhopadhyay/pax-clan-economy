@@ -15,6 +15,6 @@ export function UserInit(sequelize) {
         unique: true
       }
     },
-    { sequelize, modelName: 'User' }
+    { sequelize, modelName: 'user' }
   )
 }

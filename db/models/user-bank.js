@@ -19,6 +19,6 @@ export function UserBankInit(sequelize) {
         type: DataTypes.DATE
       }
     },
-    { sequelize, modelName: 'UserBank' }
+    { sequelize, modelName: 'user_bank' }
   )
 }
