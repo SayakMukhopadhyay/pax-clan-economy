@@ -21,7 +21,13 @@ export class MessageCreate extends Event {
   async handleThanks(message) {
     const content = message.content
 
-    if (content.toLowerCase().includes(`thank`)) {
+    if (
+      content.toLowerCase().includes(`thank`) ||
+      content.toLowerCase().includes(`thnk`) ||
+      content.toLowerCase().includes(`thnkx`) ||
+      content.toLowerCase().includes(`thnx`) ||
+      content.toLowerCase().includes(`thx`)
+    ) {
       const mentionedUsers = message.mentions.users
 
       mentionedUsers.sweep((user) => {
